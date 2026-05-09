@@ -634,6 +634,24 @@
   .continue-button::after { content: " →"; }
 
   /* ================================================================
+     FULL-VIEWPORT CENTERING HELPER
+     For full-screen moments (transitions, punch sequence, final text),
+     compensate for the 200px sidebar so content centers on the viewport
+     rather than the offset main column.
+     ================================================================ */
+  .full-viewport-center {
+    margin-left: -100px;
+    width: calc(100% + 200px);
+  }
+
+  @media (max-width: 900px) {
+    .full-viewport-center {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+
+  /* ================================================================
      PUNCH SEQUENCE
      ================================================================ */
   .punch-frame {
@@ -1213,7 +1231,7 @@ function renderTransition(date, text, sub, nextFn) {
   clearGame();
   hideTimeline();
   hud.classList.add('hidden');
-  const t = el('div', 'scene-transition');
+  const t = el('div', 'scene-transition full-viewport-center');
   t.innerHTML = `
     <div class="scene-transition-date">${date}</div>
     <div class="scene-transition-text">${text}</div>
@@ -1266,8 +1284,8 @@ function primer() {
     <p>The official rulebook, enforced by referees, prohibits hitting from behind, hitting the head, and fighting. The official rulebook is broken constantly.</p>
 
     <h2>The code</h2>
-    <p>The unofficial rulebook is called <em>the code</em>. It governs what the official rulebook does not. If a player on your team is injured by a hit that referees do not penalize, the code says someone on your team must answer for it. Usually this means a fight. Two players drop their gloves, square up, and trade punches until one of them goes down or a linesman pulls them apart.</p>
-    <p>The code is supposed to keep the sport honest. The argument is that without it, players would take liberties with each other that the rules cannot police. The argument has been made for over a hundred years. The argument has never been settled.</p>
+    <p>The unofficial rulebook is called <em>the code</em>. It governs what the official rulebook does not. If a player on your team is injured by a hit that feels dirty, the code says that player must answer for it. Usually this means a fight. The player that threw the dirty hit is challenged by someone on the opposing team, the players drop their gloves, square up, and trade punches until one of them goes down or a linesman pulls them apart. If you don't answer for it, things tend to get out of hand.</p>
+    <p>The code is supposed to keep the sport honest. The argument is that without it, players would take liberties with each other that the refs alone cannot police. The code has existed for the entire lifetime of the sport of hockey, and very rarely does it cause more problems than it solves.</p>
 
     <h2>This story</h2>
     <p>On February 16, 2004, Steve Moore of the Colorado Avalanche delivered a hit to Markus Naslund of the Vancouver Canucks. The hit was legal. Naslund was concussed. Moore did not fight anyone. The code was not satisfied.</p>
@@ -1533,7 +1551,7 @@ function scene3_commit_1() {
   clearGame();
   hideTimeline();
   hud.classList.add('hidden');
-  const frame = el('div', 'punch-frame');
+  const frame = el('div', 'punch-frame full-viewport-center');
   frame.innerHTML = `
     <div class="punch-prompt">Press to continue</div>
     <div class="punch-action">You skate up behind him.</div>
@@ -1546,7 +1564,7 @@ function scene3_commit_1() {
 
 function scene3_commit_2() {
   clearGame();
-  const frame = el('div', 'punch-frame');
+  const frame = el('div', 'punch-frame full-viewport-center');
   frame.innerHTML = `
     <div class="punch-prompt">Press to continue</div>
     <div class="punch-action">You grab his jersey with your left hand.</div>
@@ -1559,7 +1577,7 @@ function scene3_commit_2() {
 
 function scene3_commit_3() {
   clearGame();
-  const frame = el('div', 'punch-frame');
+  const frame = el('div', 'punch-frame full-viewport-center');
   frame.innerHTML = `
     <div class="punch-prompt">Press to continue</div>
     <div class="punch-action">You throw the punch.</div>
@@ -1572,7 +1590,7 @@ function scene3_commit_3() {
 
 function scene3_freeze() {
   clearGame();
-  const freeze = el('div', 'punch-freeze');
+  const freeze = el('div', 'punch-freeze full-viewport-center');
   freeze.innerHTML = `<div class="punch-freeze-text">—</div>`;
   game.appendChild(freeze);
 
@@ -1895,26 +1913,28 @@ function irac_2007() {
 
     <h2>Issue</h2>
     <ol>
-      <li>Whether the Rules of Civil Procedure prohibit a party from filing complete discovery transcripts with the court</li>
-      <li>Whether public access to the filed transcripts poses a serious risk to Bertuzzi's right to a fair trial sufficient to justify a publication ban or sealing order</li>
-      <li>Whether the deemed undertaking rule prevents transcripts from becoming part of the public record once filed</li>
+      <li>Are Moore's lawyers allowed to file the full discovery transcripts (the recorded answers Bertuzzi gave under oath in private) into the public court record?</li>
+      <li>Does releasing those transcripts to the public threaten Bertuzzi's right to a fair trial enough to justify keeping them secret?</li>
+      <li>Does a rule protecting private discovery materials block the transcripts from becoming public once they have been officially filed with the court?</li>
     </ol>
 
     <h2>Rule</h2>
     <ul>
-      <li>Open court principle (s. 2(b) of the Canadian Charter of Rights and Freedoms; ss. 135 and 137 of the Courts of Justice Act)</li>
-      <li>Dagenais/Mentuck test (a publication ban is justified only where necessary to prevent a serious risk to the proper administration of justice and where the salutary effects outweigh the deleterious effects on freedom of expression and the open court principle)</li>
-      <li>Rules of Civil Procedure, rules 30.1.01, 34.18, 37.10 (filing of transcripts; deemed undertaking)</li>
+      <li>The open court principle (court proceedings are public by default in Canada)</li>
+      <li>The Dagenais/Mentuck test (the legal test for when a court can override that default and impose secrecy)</li>
+      <li>The deemed undertaking rule (a rule that keeps discovery materials private)</li>
     </ul>
 
     <h2>Analysis</h2>
-    <p>In 2007, Moore's counsel sought to file complete examination-for-discovery transcripts of Bertuzzi and Canucks GM Dave Nonis as part of the civil action's procedural record. The transcripts contained Bertuzzi's sworn testimony that Coach Marc Crawford, during the second intermission of the March 8, 2004 game, had pointed to Moore's name on the locker-room whiteboard and said Moore had to "pay the price." Bertuzzi moved to prevent the filing, arguing that public release would jeopardize his right to a fair trial before a future jury and that the deemed undertaking rule shielded the testimony. The court rejected both arguments. The Rules of Civil Procedure do not prohibit filing complete transcripts. Applying the Dagenais/Mentuck test, the court found Bertuzzi had not established a real and substantial risk to a fair trial, only a speculative one, which is insufficient to override the constitutional presumption of open courts under s. 2(b) of the Charter. The deemed undertaking rule, which protects discovery materials from collateral use, does not survive the moment those materials are filed in court for use in the proceeding itself. The motion was dismissed. Once filed, the transcripts became part of the public court record. Within days, TSN, CBC, and other outlets reported on the contents, and the "pay the price" testimony entered public discourse for the first time.</p>
+    <p>In 2007, Moore's lawyers wanted to file the full transcripts of the discovery sessions, where Bertuzzi and Canucks GM Dave Nonis had been questioned under oath, into the public court record. These transcripts contained Bertuzzi's sworn testimony that Coach Marc Crawford had pointed to Moore's name on the locker room whiteboard during the second intermission and said Moore had to "pay the price." Bertuzzi's lawyers tried to stop the filing. They argued that letting the public see the transcripts would poison the jury pool and threaten Bertuzzi's right to a fair trial. They also argued that a rule protecting discovery materials should keep the transcripts private even after they were filed.</p>
+
+    <p>The court rejected both arguments. On the first point, the court said Bertuzzi had not actually shown a real risk to a fair trial. He had only described a possible one, a speculation, and that is not enough to override the public's right to see what happens in court. On the second point, the court said the rule that protects discovery materials only applies when those materials are sitting in lawyers' file cabinets. Once they are filed with the court, that protection ends. The motion was dismissed. The transcripts became public. Within days, TSN, CBC, and other Canadian outlets were reporting Bertuzzi's "pay the price" testimony, and the phrase entered public discourse for the first time.</p>
 
     <h2>Conclusion</h2>
     <ol>
-      <li>No, the Rules of Civil Procedure do not prohibit filing complete discovery transcripts</li>
-      <li>No, the risk to a fair trial was speculative and insufficient under Dagenais/Mentuck to justify restricting public access</li>
-      <li>No, the deemed undertaking rule does not prevent filed transcripts from becoming public</li>
+      <li>Yes, Moore's lawyers were allowed to file the full transcripts in the public court record</li>
+      <li>No, the risk to a fair trial was only speculative and not enough to justify keeping the transcripts secret</li>
+      <li>No, the rule that protects private discovery materials does not apply once those materials are filed with the court</li>
     </ol>
   `;
   game.appendChild(p);
@@ -2008,27 +2028,30 @@ function irac_2012() {
 
     <h2>Issue</h2>
     <ol>
-      <li>Whether the settlement agreement between Bertuzzi, Crawford, and Orca Bay falls within an exception to settlement privilege requiring it be disclosed to Moore</li>
-      <li>Whether disclosure must be made immediately or can be deferred until trial</li>
-      <li>Whether the full financial terms must be disclosed, or only the structural fact that an agreement exists</li>
+      <li>Does the secret agreement between Bertuzzi, Crawford, and Orca Bay have to be shown to Moore?</li>
+      <li>If so, does it have to be shown right away, or can it wait until the trial?</li>
+      <li>Does Moore get to see the full agreement including the financial details, or just the basic fact that the defendants made a deal?</li>
     </ol>
 
     <h2>Rule</h2>
     <ul>
-      <li>Settlement privilege (class privilege protecting settlement communications, subject to exceptions)</li>
-      <li>Mary Carter agreement doctrine (partial settlement among defendants that restructures the adversarial alignment of the case)</li>
-      <li>Immediate disclosure rule from <em>Pettey v. Avis Car Inc.</em> (1993), affirmed by the Ontario Court of Appeal in <em>Laudon v. Roberts</em> (2009 ONCA 383) and <em>Aecon Buildings v. Brampton</em> (2010 ONCA 898)</li>
-      <li>Court's inherent jurisdiction to control its own process to maintain the integrity of the adversarial system</li>
+      <li>Settlement privilege (the general rule that settlement deals stay private)</li>
+      <li>Mary Carter agreements (a type of partial settlement where defendants secretly team up against the plaintiff)</li>
+      <li>The immediate disclosure rule (when a Mary Carter agreement changes who is fighting whom in a case, both sides have to be told right away)</li>
     </ul>
 
     <h2>Analysis</h2>
-    <p>Moore filed suit in Ontario against Bertuzzi, Crawford, and Orca Bay for the on-ice attack of March 8, 2004. Bertuzzi initially brought a third-party claim against Crawford alleging Crawford had ordered the attack, and the defendants had pending cross-claims against each other. In 2011, Moore's lawyer Tim Danson noticed that Bertuzzi had dropped the third-party claim and the cross-claims had been dismissed. Investigation revealed that Bertuzzi, Crawford, and Orca Bay had secretly signed a partial settlement agreement apportioning liability among themselves, converting a three-sided fight into a unified defense against Moore. Master Dash ordered the agreement disclosed. Bertuzzi and Orca Bay appealed to Justice Perell, arguing settlement privilege absolutely protected the agreement, that disclosure should wait until trial, and that financial terms could remain confidential. Perell J. rejected all three arguments. Settlement privilege is a class privilege but not absolute, and agreements that alter the adversarial orientation of litigation fall within an established exception because the court cannot manage its own process without understanding the true alignment of the parties. Relying on <em>Aecon</em> and <em>Laudon</em>, he held disclosure must be immediate so Moore could prepare for a trial in which the real positions of the parties were not hidden. Withholding the financial terms would be more prejudicial than full disclosure, because Moore and any eventual jury could not assess the incentives driving each defendant's posture. The appeal was dismissed and full disclosure ordered.</p>
+    <p>For seven years, Moore was suing three defendants who were each pointing fingers at one another. Bertuzzi blamed Crawford. Crawford blamed Bertuzzi. Orca Bay was caught in the middle. Then in 2011, Bertuzzi quietly dropped his claim against Crawford. Moore's lawyer Tim Danson noticed the change and went looking for an explanation. He found that Bertuzzi, Crawford, and Orca Bay had secretly signed an agreement among themselves. They had decided privately how they would split any payout to Moore, and they had agreed to stop fighting each other and present a united front against him at trial. Moore was never told.</p>
+
+    <p>Master Dash, an Ontario court official, ordered the agreement disclosed. The defendants appealed to Justice Perell. They made three arguments: that settlement deals are private as a general rule, that even if Moore had to see the agreement he should not see it until trial, and that the financial details should stay secret even if the basic fact of the deal came out.</p>
+
+    <p>Justice Perell rejected all three. He said settlement deals are usually private, but not when they secretly change who is on which side of a lawsuit. The court itself cannot do its job fairly if it does not know that the people in front of it are quietly working together. Disclosure had to happen right away, not at trial, so Moore could actually prepare for a trial where he understood who his real opponents were. And the financial details mattered because Moore and any future jury needed to know what each defendant stood to gain or lose, otherwise they could not fairly judge what those defendants said on the stand. The appeal was dismissed. Moore got the full agreement.</p>
 
     <h2>Conclusion</h2>
     <ol>
-      <li>Yes, the agreement falls within an exception to settlement privilege and must be disclosed</li>
-      <li>Immediately, not at trial</li>
-      <li>Yes, the full financial terms must be disclosed, not only the structural fact of the agreement</li>
+      <li>Yes, the agreement had to be shown to Moore</li>
+      <li>Right away, not at trial</li>
+      <li>Yes, including all the financial details</li>
     </ol>
   `;
   game.appendChild(p);
@@ -2076,7 +2099,7 @@ function scene7_final_text() {
   clearGame();
   hud.classList.add('hidden');
   hideTimeline();
-  const final = el('div', 'final-text');
+  const final = el('div', 'final-text full-viewport-center');
   final.innerHTML = `
     <p>Steve Moore never played hockey again<br>after March 8, 2004.</p>
     <p>Todd Bertuzzi played his final NHL game<br>on April 12, 2014.</p>
@@ -2086,7 +2109,7 @@ function scene7_final_text() {
   game.appendChild(final);
 
   setTimeout(() => {
-    const credits = el('div', 'final-text');
+    const credits = el('div', 'final-text full-viewport-center');
     credits.style.paddingTop = '3rem';
     credits.innerHTML = `<p style="animation-delay: 0s; color: var(--ink-faint);">— End —</p>`;
     game.appendChild(credits);
@@ -2103,10 +2126,10 @@ function scene7_final_text() {
 function scene8_epilogue() {
   clearGame();
   hud.classList.add('hidden');
-  showTimeline();
+  hideTimeline();
   setTimelineCurrent('s8');
 
-  const ep = el('div', 'epilogue');
+  const ep = el('div', 'epilogue full-viewport-center');
   ep.innerHTML = `
     <div class="epilogue-header">
       Now playing<br>
@@ -2125,9 +2148,11 @@ function scene8_epilogue() {
       <button class="choice" id="ep-look">Look at the ceiling</button>
       <button class="choice" id="ep-sleep">Try to sleep</button>
     </div>
-    <div style="margin-top: 4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-faint); text-align: center; max-width: 400px; line-height: 2;">
-      The game does not end.<br>
-      Close the tab when you are ready.
+    <div style="margin-top: 3rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-faint); text-align: center; max-width: 400px; line-height: 2;">
+      Sit with this as long as you need.
+    </div>
+    <div style="margin-top: 2rem;">
+      <button class="continue-button" id="ep-end">End the game</button>
     </div>
   `;
   game.appendChild(ep);
@@ -2136,8 +2161,28 @@ function scene8_epilogue() {
   document.getElementById('ep-move').onclick = () => { action.textContent = 'You cannot.'; };
   document.getElementById('ep-look').onclick = () => { action.textContent = 'You do.'; };
   document.getElementById('ep-sleep').onclick = () => { action.textContent = 'You try.'; };
+  document.getElementById('ep-end').onclick = () => scene9_credits();
 
   scrollToBottom();
+}
+
+// ================================================================
+// FINAL CREDITS SCREEN
+// ================================================================
+function scene9_credits() {
+  clearGame();
+  hud.classList.add('hidden');
+  hideTimeline();
+
+  const credits = el('div', 'final-text full-viewport-center');
+  credits.innerHTML = `
+    <p style="animation-delay: 0.5s;">Pay the Price</p>
+    <p style="animation-delay: 1.5s; color: var(--ink-dim);">A capstone case study<br>of Moore v. Bertuzzi</p>
+    <p style="animation-delay: 3s; color: var(--ink-faint);">Drew · Columbia University · 2026</p>
+    <p style="animation-delay: 4.5s; color: var(--ink-faint); font-size: 0.7rem;">Thank you for playing.</p>
+  `;
+  game.appendChild(credits);
+  window.scrollTo(0, 0);
 }
 
 // ================================================================
