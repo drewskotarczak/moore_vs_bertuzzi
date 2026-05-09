@@ -636,19 +636,34 @@
   /* ================================================================
      FULL-VIEWPORT CENTERING HELPER
      For full-screen moments (transitions, punch sequence, final text),
-     compensate for the 200px sidebar so content centers on the viewport
-     rather than the offset main column.
+     use position: fixed to escape the .main container's 200px sidebar
+     offset and center against the actual viewport.
      ================================================================ */
   .full-viewport-center {
-    margin-left: -100px;
-    width: calc(100% + 200px);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 30;
+    background: var(--bg);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem;
   }
 
-  @media (max-width: 900px) {
-    .full-viewport-center {
-      margin-left: 0;
-      width: 100%;
-    }
+  /* Override default child padding/margin since the parent now handles it */
+  .full-viewport-center.scene-transition,
+  .full-viewport-center.punch-frame,
+  .full-viewport-center.punch-freeze,
+  .full-viewport-center.final-text,
+  .full-viewport-center.epilogue {
+    min-height: 100vh;
   }
 
   /* ================================================================
