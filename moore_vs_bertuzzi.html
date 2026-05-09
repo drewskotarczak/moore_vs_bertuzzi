@@ -1,0 +1,2149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PAY THE PRICE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --bg-raised: #181816;
+    --ink: #ece8dc;
+    --ink-dim: #b8b3a3;
+    --ink-faint: #6e6a5e;
+    --code: #d4593a;
+    --code-dim: #a04a2e;
+    --court: #c9c4b4;
+    --rule: #2e2c28;
+    --mind: #6a8ab5;
+    --money: #c9a84a;
+    --positive: #6dab5e;
+    --negative: #d4593a;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  body {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ================================================================
+     SIDEBAR TIMELINE
+     ================================================================ */
+  .timeline {
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 200px;
+    background: #050505;
+    border-right: 1px solid var(--rule);
+    padding: 1.5rem 1rem;
+    overflow-y: auto;
+    z-index: 50;
+    transition: transform 0.3s;
+  }
+
+  .timeline.hidden { transform: translateX(-100%); }
+
+  .timeline-title {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    color: var(--code);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .timeline-track {
+    position: relative;
+    padding-left: 1rem;
+  }
+
+  .timeline-track::before {
+    content: '';
+    position: absolute;
+    left: 4px;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: var(--rule);
+  }
+
+  .timeline-item {
+    position: relative;
+    padding: 0.5rem 0 0.5rem 0.75rem;
+    font-size: 0.7rem;
+    color: var(--ink-faint);
+    line-height: 1.4;
+    transition: color 0.3s;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 0.85rem;
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--ink-faint);
+    background: var(--bg);
+    border-radius: 50%;
+    transition: all 0.3s;
+  }
+
+  .timeline-item.done {
+    color: var(--ink-dim);
+  }
+  .timeline-item.done::before {
+    background: var(--ink-faint);
+    border-color: var(--ink-faint);
+  }
+
+  .timeline-item.current {
+    color: var(--code);
+  }
+  .timeline-item.current::before {
+    background: var(--code);
+    border-color: var(--code);
+    box-shadow: 0 0 0 3px rgba(212, 89, 58, 0.2);
+  }
+
+  .timeline-item .date {
+    display: block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.15rem;
+    text-transform: uppercase;
+  }
+
+  .timeline-item .label {
+    font-family: 'EB Garamond', serif;
+    font-size: 0.85rem;
+    font-style: italic;
+    line-height: 1.3;
+  }
+
+  .timeline-toggle {
+    display: none;
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 60;
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    padding: 0.5rem 0.75rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    cursor: pointer;
+    text-transform: uppercase;
+  }
+
+  /* ================================================================
+     HUD
+     ================================================================ */
+  .main {
+    margin-left: 200px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: calc(100% - 200px);
+  }
+
+  .hud {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    background: #050505;
+    border-bottom: 1px solid var(--rule);
+    padding: 0.75rem 1.5rem;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1.5rem;
+    align-items: center;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+  }
+
+  .hud.hidden { display: none; }
+
+  .hud-name {
+    color: var(--code);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .hud-meters {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .meter {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+    font-size: 0.65rem;
+  }
+
+  .meter-bar {
+    width: 50px;
+    height: 6px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .meter-fill {
+    height: 100%;
+    transition: width 0.6s ease;
+  }
+
+  .meter-code .meter-fill { background: var(--code); }
+  .meter-mind .meter-fill { background: var(--mind); }
+
+  .meter-money-value {
+    color: var(--money);
+    font-weight: 500;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    transition: color 0.3s;
+  }
+
+  .meter-money-value.flash { color: #ffe082; }
+
+  .hud-date {
+    color: var(--ink-dim);
+    font-size: 0.65rem;
+    text-align: right;
+    text-transform: uppercase;
+  }
+
+  /* ================================================================
+     MAIN CONTENT AREA
+     ================================================================ */
+  .game {
+    flex: 1;
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+    width: 100%;
+  }
+
+  /* ================================================================
+     TITLE SCREEN
+     ================================================================ */
+  .title-screen {
+    min-height: calc(100vh - 4rem);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .jersey {
+    font-size: clamp(8rem, 30vw, 16rem);
+    font-weight: 700;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 2rem;
+    letter-spacing: -0.05em;
+  }
+
+  .game-title {
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
+    letter-spacing: 0.3em;
+    color: var(--ink);
+    text-transform: uppercase;
+    margin-bottom: 3rem;
+    font-weight: 400;
+  }
+
+  .game-title em {
+    font-style: normal;
+    color: var(--code);
+  }
+
+  .game-subtitle {
+    font-size: 0.8rem;
+    color: var(--ink-dim);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 4rem;
+    max-width: 500px;
+    line-height: 2;
+  }
+
+  .start-button {
+    background: transparent;
+    border: 1px solid var(--code);
+    color: var(--code);
+    padding: 1rem 3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .start-button:hover {
+    background: var(--code);
+    color: var(--bg);
+  }
+
+  /* ================================================================
+     INTRO/PRIMER PAGE
+     ================================================================ */
+  .primer {
+    padding: 4rem 0;
+  }
+
+  .primer h1 {
+    font-family: 'EB Garamond', serif;
+    font-size: 2.5rem;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+    line-height: 1.1;
+  }
+
+  .primer h2 {
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--code);
+    text-transform: uppercase;
+    margin: 2.5rem 0 1rem;
+  }
+
+  .primer .lede {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.3rem;
+    line-height: 1.6;
+    color: var(--ink-dim);
+    margin-bottom: 2rem;
+    border-left: 2px solid var(--code);
+    padding-left: 1.25rem;
+  }
+
+  .primer p {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: var(--ink);
+    margin-bottom: 1.25rem;
+  }
+
+  .primer .meters-explainer {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: var(--bg-raised);
+    border: 1px solid var(--rule);
+  }
+
+  .primer .meter-row {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 1rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+  }
+
+  .primer .meter-row:last-child { border-bottom: none; }
+
+  .primer .meter-name {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .primer .meter-name.code { color: var(--code); }
+  .primer .meter-name.mind { color: var(--mind); }
+  .primer .meter-name.money { color: var(--money); }
+
+  .primer .meter-desc {
+    font-family: 'EB Garamond', serif;
+    font-size: 1rem;
+    color: var(--ink-dim);
+    line-height: 1.5;
+  }
+
+  /* ================================================================
+     SCENE HEADER
+     ================================================================ */
+  .scene-header {
+    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+    border-bottom: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+
+  .scene-header .scene-num { color: var(--code); }
+  .scene-header .scene-date { color: var(--ink-dim); }
+  .scene-header .scene-place { color: var(--ink-faint); }
+
+  /* ================================================================
+     PROSE
+     ================================================================ */
+  .prose {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.2rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .prose p {
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .prose em { color: var(--ink); }
+  .prose strong { color: var(--ink); font-weight: 500; }
+
+  /* ================================================================
+     YOUTUBE EMBED
+     ================================================================ */
+  .video-embed {
+    margin: 2rem 0;
+    background: #000;
+    border: 1px solid var(--rule);
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+  }
+
+  .video-embed-label {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--rule);
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--code);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .video-embed-label .src { color: var(--ink-faint); }
+
+  .video-embed iframe {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: none;
+    display: block;
+  }
+
+  .video-embed-caption {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid var(--rule);
+    font-family: 'EB Garamond', serif;
+    font-size: 0.95rem;
+    font-style: italic;
+    color: var(--ink-dim);
+  }
+
+  /* ================================================================
+     DIALOGUE
+     ================================================================ */
+  .dialogue {
+    margin: 2rem 0;
+    padding: 1.25rem 1.5rem;
+    background: var(--bg-raised);
+    border-left: 2px solid var(--ink-faint);
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  .dialogue-speaker {
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--code);
+    margin-bottom: 0.5rem;
+  }
+
+  .dialogue-line {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.15rem;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  /* ================================================================
+     CHOICES
+     ================================================================ */
+  .choices {
+    margin: 2rem 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+  }
+
+  .choice {
+    background: transparent;
+    border: 1px solid var(--rule);
+    color: var(--ink);
+    padding: 1rem 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+  }
+
+  .choice:hover {
+    border-color: var(--code);
+    background: var(--bg-raised);
+    color: var(--code);
+  }
+
+  .choice:disabled {
+    cursor: default;
+    opacity: 0.4;
+  }
+
+  .choice .prefix {
+    color: var(--ink-faint);
+    margin-right: 0.75rem;
+  }
+
+  .choice:hover .prefix { color: var(--code); }
+  .choice.selected { border-color: var(--code); color: var(--code); }
+  .choice.selected .prefix { color: var(--code); }
+  .choice.faded { opacity: 0.25; }
+
+  /* ================================================================
+     METER FEEDBACK (after choice)
+     ================================================================ */
+  .meter-feedback {
+    margin: 0.5rem 0 1.5rem;
+    padding-left: 1.25rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeInOut 4s ease forwards;
+    display: flex;
+    gap: 1.25rem;
+    flex-wrap: wrap;
+  }
+
+  @keyframes fadeInOut {
+    0% { opacity: 0; }
+    10% { opacity: 1; }
+    80% { opacity: 1; }
+    100% { opacity: 0.4; }
+  }
+
+  .meter-feedback .change {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .meter-feedback .change-label {
+    color: var(--ink-faint);
+  }
+
+  .meter-feedback .change-value.positive { color: var(--positive); }
+  .meter-feedback .change-value.negative { color: var(--negative); }
+  .meter-feedback .change-value.neutral { color: var(--ink-faint); }
+
+  /* ================================================================
+     CONSEQUENCE LINE
+     ================================================================ */
+  .consequence {
+    margin: 0.5rem 0 2rem;
+    padding-left: 1.25rem;
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--ink-dim);
+    border-left: 1px solid var(--ink-faint);
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+    animation-delay: 0.3s;
+  }
+
+  /* ================================================================
+     CONTINUE BUTTON
+     ================================================================ */
+  .continue {
+    margin-top: 2.5rem;
+    text-align: center;
+    opacity: 0;
+    animation: fadeIn 0.4s ease forwards;
+    animation-delay: 0.5s;
+  }
+
+  .continue-button {
+    background: transparent;
+    border: none;
+    color: var(--ink-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    padding: 0.75rem 1.5rem;
+    transition: color 0.2s;
+  }
+
+  .continue-button:hover { color: var(--code); }
+  .continue-button::after { content: " →"; }
+
+  /* ================================================================
+     PUNCH SEQUENCE
+     ================================================================ */
+  .punch-frame {
+    text-align: center;
+    padding: 4rem 0;
+  }
+
+  .punch-prompt {
+    font-size: 0.85rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-bottom: 2rem;
+  }
+
+  .punch-action {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.6rem;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 3rem;
+    line-height: 1.4;
+  }
+
+  .punch-button {
+    background: transparent;
+    border: 2px solid var(--code);
+    color: var(--code);
+    padding: 1.25rem 3rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .punch-button:hover {
+    background: var(--code);
+    color: var(--bg);
+  }
+
+  .punch-freeze {
+    text-align: center;
+    padding: 6rem 0;
+    background: #000;
+    min-height: 60vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .punch-freeze-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 1.1rem;
+    line-height: 2;
+  }
+
+  /* ================================================================
+     LOADING-SCREEN TRANSITIONS (between scenes)
+     ================================================================ */
+  .scene-transition {
+    min-height: 70vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    text-align: center;
+    padding: 2rem;
+  }
+
+  .scene-transition-date {
+    font-size: 0.75rem;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--code);
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+  }
+
+  .scene-transition-text {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 1.6rem;
+    color: var(--ink);
+    line-height: 1.4;
+    max-width: 540px;
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeIn 1.2s ease forwards;
+    animation-delay: 0.4s;
+  }
+
+  .scene-transition-sub {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 3rem;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+    animation-delay: 1s;
+  }
+
+  .scene-transition-button {
+    opacity: 0;
+    animation: fadeIn 0.8s ease forwards;
+    animation-delay: 1.8s;
+  }
+
+  /* ================================================================
+     CAROUSEL (CONTRACT MONTAGE)
+     ================================================================ */
+  .carousel {
+    padding: 3rem 0;
+  }
+
+  .carousel-row {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    gap: 1.5rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+    align-items: baseline;
+    opacity: 0;
+    animation: fadeIn 0.5s ease forwards;
+  }
+
+  .carousel-year {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.8rem;
+    letter-spacing: 0.15em;
+    color: var(--code);
+  }
+
+  .carousel-event {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+    color: var(--ink);
+  }
+
+  .carousel-event.legal {
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+
+  .carousel-money {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--money);
+    letter-spacing: 0.05em;
+  }
+
+  /* ================================================================
+     IRAC CHAPTER
+     ================================================================ */
+  .irac-page {
+    padding: 3rem 0;
+  }
+
+  .irac-page .marker {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--code);
+    margin-bottom: 0.5rem;
+  }
+
+  .irac-page h1 {
+    font-family: 'EB Garamond', serif;
+    font-size: 2rem;
+    font-style: italic;
+    color: var(--ink);
+    margin-bottom: 1rem;
+    line-height: 1.2;
+  }
+
+  .irac-page .citation {
+    font-size: 0.75rem;
+    letter-spacing: 0.15em;
+    color: var(--ink-dim);
+    margin-bottom: 2rem;
+  }
+
+  .irac-page h2 {
+    font-size: 0.8rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--code);
+    margin: 2rem 0 0.75rem;
+  }
+
+  .irac-page p, .irac-page li {
+    font-family: 'EB Garamond', serif;
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: var(--ink);
+  }
+
+  .irac-page p { margin-bottom: 1rem; }
+
+  .irac-page ul, .irac-page ol {
+    margin: 0.5rem 0 1rem 1.5rem;
+  }
+
+  .irac-page li { margin-bottom: 0.5rem; }
+
+  /* ================================================================
+     LEDGER CALLBACK
+     ================================================================ */
+  .ledger-callback {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #100806;
+    border: 1px solid var(--code-dim);
+    opacity: 0;
+    animation: fadeIn 0.6s ease forwards;
+    animation-delay: 0.4s;
+  }
+
+  .ledger-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--code);
+    margin-bottom: 0.75rem;
+  }
+
+  .ledger-quote {
+    font-family: 'EB Garamond', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    color: var(--ink);
+    line-height: 1.6;
+  }
+
+  /* ================================================================
+     EPILOGUE & FINAL
+     ================================================================ */
+  .final-text {
+    padding: 6rem 1.5rem;
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+  }
+
+  .final-text p {
+    font-size: 0.85rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink);
+    line-height: 2;
+    margin-bottom: 2rem;
+    opacity: 0;
+    animation: fadeIn 1s ease forwards;
+  }
+
+  .final-text p:nth-child(1) { animation-delay: 0.5s; }
+  .final-text p:nth-child(2) { animation-delay: 2s; }
+  .final-text p:nth-child(3) { animation-delay: 3.5s; }
+  .final-text p:nth-child(4) { animation-delay: 5s; }
+
+  .epilogue {
+    background: #050505;
+    min-height: 100vh;
+    padding: 6rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .epilogue-header {
+    font-size: 0.7rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 3rem;
+    text-align: center;
+  }
+
+  .epilogue-header .name {
+    color: var(--court);
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 1rem;
+  }
+
+  .epilogue-prose {
+    max-width: 500px;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.15rem;
+    line-height: 1.8;
+    color: var(--ink-dim);
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .epilogue-action {
+    margin: 2rem 0;
+    color: var(--ink-dim);
+    font-style: italic;
+    text-align: center;
+    min-height: 2rem;
+    font-family: 'EB Garamond', serif;
+    font-size: 1.1rem;
+  }
+
+  /* ================================================================
+     RESPONSIVE
+     ================================================================ */
+  @media (max-width: 900px) {
+    .timeline { transform: translateX(-100%); }
+    .timeline.show { transform: translateX(0); }
+    .timeline-toggle { display: block; }
+    .main { margin-left: 0; width: 100%; }
+  }
+
+  @media (max-width: 640px) {
+    body { font-size: 14px; }
+    .game { padding: 2rem 1rem 3rem; }
+    .prose { font-size: 1.05rem; }
+    .hud { padding: 0.5rem 1rem; gap: 0.75rem; font-size: 0.65rem; }
+    .hud-meters { gap: 0.75rem; }
+    .meter-bar { width: 35px; }
+    .hud-date { display: none; }
+    .meter-feedback { font-size: 0.7rem; gap: 0.75rem; }
+    .carousel-row { grid-template-columns: 60px 1fr auto; gap: 0.75rem; font-size: 0.95rem; }
+    .primer h1 { font-size: 2rem; }
+  }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<!-- =====================================================
+     TIMELINE SIDEBAR
+     ===================================================== -->
+<button class="timeline-toggle" id="timeline-toggle">≡ Timeline</button>
+<aside class="timeline hidden" id="timeline">
+  <div class="timeline-title">The Case · 10 Years</div>
+  <div class="timeline-track" id="timeline-track">
+    <div class="timeline-item" data-id="primer"><span class="date">Briefing</span><span class="label">The code</span></div>
+    <div class="timeline-item" data-id="s1"><span class="date">Feb 16, 2004</span><span class="label">Naslund</span></div>
+    <div class="timeline-item" data-id="s2"><span class="date">Feb–Mar 2004</span><span class="label">Buildup</span></div>
+    <div class="timeline-item" data-id="s3"><span class="date">Mar 8, 2004</span><span class="label">The punch</span></div>
+    <div class="timeline-item" data-id="s4"><span class="date">Mar–Dec 2004</span><span class="label">Plea</span></div>
+    <div class="timeline-item" data-id="s5"><span class="date">2004–2005</span><span class="label">Lockout</span></div>
+    <div class="timeline-item" data-id="carousel"><span class="date">2005–2010</span><span class="label">Six teams</span></div>
+    <div class="timeline-item" data-id="s6"><span class="date">Oct 2007</span><span class="label">Deposition</span></div>
+    <div class="timeline-item" data-id="irac1"><span class="date">Dec 2007</span><span class="label">Open court ruling</span></div>
+    <div class="timeline-item" data-id="mc"><span class="date">Sep 2011</span><span class="label">Mary Carter</span></div>
+    <div class="timeline-item" data-id="irac2"><span class="date">Jun 2012</span><span class="label">Disclosure ruling</span></div>
+    <div class="timeline-item" data-id="s7"><span class="date">Aug 19, 2014</span><span class="label">Settlement</span></div>
+    <div class="timeline-item" data-id="s8"><span class="date">Mar 9, 2004</span><span class="label">Moore</span></div>
+  </div>
+</aside>
+
+<!-- =====================================================
+     MAIN
+     ===================================================== -->
+<div class="main">
+  <div id="hud" class="hud hidden">
+    <div class="hud-name">BERTUZZI 44</div>
+    <div class="hud-meters">
+      <div class="meter meter-code">
+        <span>CODE</span>
+        <div class="meter-bar"><div class="meter-fill" id="meter-code" style="width: 50%;"></div></div>
+      </div>
+      <div class="meter meter-mind">
+        <span>MIND</span>
+        <div class="meter-bar"><div class="meter-fill" id="meter-mind" style="width: 70%;"></div></div>
+      </div>
+      <div class="meter">
+        <span>MONEY</span>
+        <span class="meter-money-value" id="meter-money">$6.2M</span>
+      </div>
+    </div>
+    <div class="hud-date" id="hud-date">FEB 16, 2004</div>
+  </div>
+
+  <div id="game" class="game"></div>
+</div>
+
+<script>
+// ================================================================
+// GAME STATE
+// ================================================================
+const state = {
+  scene: 0,
+  meters: { code: 50, mind: 70 },
+  money: 6.2,           // millions
+  ledger: {},
+  flags: {}
+};
+
+const game = document.getElementById('game');
+const hud = document.getElementById('hud');
+const timelineEl = document.getElementById('timeline');
+
+// Timeline toggle for mobile
+document.getElementById('timeline-toggle').onclick = () => {
+  timelineEl.classList.toggle('show');
+};
+
+function showTimeline() { timelineEl.classList.remove('hidden'); }
+function hideTimeline() { timelineEl.classList.add('hidden'); timelineEl.classList.remove('show'); }
+
+function setTimelineCurrent(id) {
+  document.querySelectorAll('.timeline-item').forEach(el => {
+    el.classList.remove('current');
+    if (el.dataset.id === id) {
+      el.classList.add('current');
+      // mark all previous as done
+      let cur = el.previousElementSibling;
+      while (cur) {
+        cur.classList.add('done');
+        cur = cur.previousElementSibling;
+      }
+    }
+  });
+}
+
+function updateMeters() {
+  document.getElementById('meter-code').style.width = Math.max(0, Math.min(100, state.meters.code)) + '%';
+  document.getElementById('meter-mind').style.width = Math.max(0, Math.min(100, state.meters.mind)) + '%';
+  const moneyEl = document.getElementById('meter-money');
+  moneyEl.textContent = '$' + state.money.toFixed(1) + 'M';
+}
+
+function flashMoney() {
+  const moneyEl = document.getElementById('meter-money');
+  moneyEl.classList.add('flash');
+  setTimeout(() => moneyEl.classList.remove('flash'), 600);
+}
+
+function setDate(d) { document.getElementById('hud-date').textContent = d; }
+
+function applyDeltas(deltas) {
+  if (!deltas) return;
+  if (deltas.code !== undefined) state.meters.code = Math.max(0, Math.min(100, state.meters.code + deltas.code));
+  if (deltas.mind !== undefined) state.meters.mind = Math.max(0, Math.min(100, state.meters.mind + deltas.mind));
+  if (deltas.money !== undefined) {
+    state.money = Math.max(0, state.money + deltas.money);
+    flashMoney();
+  }
+  updateMeters();
+}
+
+function clearGame() { game.innerHTML = ''; window.scrollTo(0, 0); }
+
+function scrollToBottom() {
+  setTimeout(() => window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }), 100);
+}
+
+function el(tag, className, html) {
+  const e = document.createElement(tag);
+  if (className) e.className = className;
+  if (html !== undefined) e.innerHTML = html;
+  return e;
+}
+
+// ================================================================
+// RENDERING PRIMITIVES
+// ================================================================
+function renderSceneHeader(num, date, place) {
+  const h = el('div', 'scene-header');
+  h.innerHTML = `
+    <span class="scene-num">${num}</span>
+    <span class="scene-date">${date}</span>
+    <span class="scene-place">${place}</span>
+  `;
+  game.appendChild(h);
+}
+
+function renderProse(paragraphs) {
+  const wrap = el('div', 'prose');
+  paragraphs.forEach((text, i) => {
+    const p = el('p', '', text);
+    p.style.animationDelay = (i * 0.15) + 's';
+    wrap.appendChild(p);
+  });
+  game.appendChild(wrap);
+}
+
+function renderDialogue(speaker, line) {
+  const d = el('div', 'dialogue');
+  d.innerHTML = `
+    <div class="dialogue-speaker">${speaker}</div>
+    <div class="dialogue-line">"${line}"</div>
+  `;
+  game.appendChild(d);
+}
+
+function renderVideo(youtubeId, label, caption) {
+  const v = el('div', 'video-embed');
+  v.innerHTML = `
+    <div class="video-embed-label"><span>${label}</span><span class="src">YouTube · CBC</span></div>
+    <iframe src="https://www.youtube.com/embed/${youtubeId}" allowfullscreen allow="encrypted-media"></iframe>
+    ${caption ? `<div class="video-embed-caption">${caption}</div>` : ''}
+  `;
+  game.appendChild(v);
+  scrollToBottom();
+}
+
+function formatDeltas(deltas) {
+  if (!deltas) return '';
+  const parts = [];
+  const fmt = (label, v, isMoney) => {
+    if (v === undefined || v === 0) {
+      parts.push(`<span class="change"><span class="change-label">${label}</span><span class="change-value neutral">±0</span></span>`);
+      return;
+    }
+    const sign = v > 0 ? '+' : '';
+    const cls = v > 0 ? 'positive' : 'negative';
+    const display = isMoney ? `${sign}$${Math.abs(v).toFixed(1)}M` : `${sign}${v}`;
+    parts.push(`<span class="change"><span class="change-label">${label}</span><span class="change-value ${cls}">${display}</span></span>`);
+  };
+  if (deltas.code !== undefined) fmt('CODE', deltas.code);
+  if (deltas.mind !== undefined) fmt('MIND', deltas.mind);
+  if (deltas.money !== undefined) fmt('MONEY', deltas.money, true);
+  return parts.join('');
+}
+
+function renderChoices(choices, onSelect) {
+  const wrap = el('div', 'choices');
+  const buttons = [];
+  choices.forEach((c, idx) => {
+    const btn = el('button', 'choice');
+    const prefix = ['[A]', '[B]', '[C]', '[D]'][idx];
+    btn.innerHTML = `<span class="prefix">${prefix}</span>${c.text}`;
+    btn.onclick = () => {
+      buttons.forEach(b => b.disabled = true);
+      btn.classList.add('selected');
+      buttons.forEach(b => { if (b !== btn) b.classList.add('faded'); });
+      applyDeltas(c.deltas);
+      if (c.ledger) state.ledger[c.ledger.key] = c.ledger.value;
+      if (c.flag) state.flags[c.flag] = true;
+      // render meter feedback inline below this choice
+      const fb = el('div', 'meter-feedback');
+      fb.innerHTML = formatDeltas(c.deltas);
+      btn.parentNode.insertBefore(fb, btn.nextSibling);
+      onSelect(c, btn);
+    };
+    wrap.appendChild(btn);
+    buttons.push(btn);
+  });
+  game.appendChild(wrap);
+  scrollToBottom();
+}
+
+function renderConsequence(text) {
+  const c = el('div', 'consequence', text);
+  game.appendChild(c);
+  scrollToBottom();
+}
+
+function renderContinue(label, onClick) {
+  const c = el('div', 'continue');
+  const btn = el('button', 'continue-button', label || 'Continue');
+  btn.onclick = () => { btn.disabled = true; onClick(); };
+  c.appendChild(btn);
+  game.appendChild(c);
+  scrollToBottom();
+}
+
+// Two-step transition: shows date + atmospheric text, requires explicit click to continue
+function renderTransition(date, text, sub, nextFn) {
+  clearGame();
+  hideTimeline();
+  hud.classList.add('hidden');
+  const t = el('div', 'scene-transition');
+  t.innerHTML = `
+    <div class="scene-transition-date">${date}</div>
+    <div class="scene-transition-text">${text}</div>
+    ${sub ? `<div class="scene-transition-sub">${sub}</div>` : '<div class="scene-transition-sub">&nbsp;</div>'}
+    <div class="scene-transition-button">
+      <button class="continue-button" id="trans-btn">Continue</button>
+    </div>
+  `;
+  game.appendChild(t);
+  document.getElementById('trans-btn').onclick = () => {
+    showTimeline();
+    nextFn();
+  };
+}
+
+// ================================================================
+// TITLE
+// ================================================================
+function scene0_title() {
+  hud.classList.add('hidden');
+  hideTimeline();
+  clearGame();
+  const t = el('div', 'title-screen');
+  t.innerHTML = `
+    <div class="jersey">44</div>
+    <div class="game-title">Pay the <em>Price</em></div>
+    <div class="game-subtitle">A narrative game in eight scenes<br>and ten and a half years</div>
+    <button class="start-button" id="start-btn">Begin</button>
+  `;
+  game.appendChild(t);
+  document.getElementById('start-btn').onclick = () => primer();
+}
+
+// ================================================================
+// PRIMER (HOCKEY + CODE + DELAY THESIS)
+// ================================================================
+function primer() {
+  clearGame();
+  hud.classList.add('hidden');
+  showTimeline();
+  setTimelineCurrent('primer');
+
+  const p = el('div', 'primer');
+  p.innerHTML = `
+    <h1>Before we begin.</h1>
+    <div class="lede">Hockey is a sport with two rulebooks. The first is written down. The second is not. The story you are about to play tested the second one harder than any moment in the modern history of the sport.</div>
+
+    <h2>The sport</h2>
+    <p>Professional hockey is fast and physical. Players carry a curved wooden stick. They move on skates at speeds approaching thirty miles per hour. Two teams of five skaters and a goalie chase a hard rubber disc, the puck, across a sheet of ice with the goal of putting it in the other team's net. Games run sixty minutes, divided into three twenty-minute periods.</p>
+    <p>The official rulebook, enforced by referees, prohibits hitting from behind, hitting the head, and fighting. The official rulebook is broken constantly.</p>
+
+    <h2>The code</h2>
+    <p>The unofficial rulebook is called <em>the code</em>. It governs what the official rulebook does not. If a player on your team is injured by a hit that referees do not penalize, the code says someone on your team must answer for it. Usually this means a fight. Two players drop their gloves, square up, and trade punches until one of them goes down or a linesman pulls them apart.</p>
+    <p>The code is supposed to keep the sport honest. The argument is that without it, players would take liberties with each other that the rules cannot police. The argument has been made for over a hundred years. The argument has never been settled.</p>
+
+    <h2>This story</h2>
+    <p>On February 16, 2004, Steve Moore of the Colorado Avalanche delivered a hit to Markus Naslund of the Vancouver Canucks. The hit was legal. Naslund was concussed. Moore did not fight anyone. The code was not satisfied.</p>
+    <p>Three weeks later, Todd Bertuzzi of the Vancouver Canucks attacked Steve Moore from behind. Moore suffered three fractured vertebrae and a serious concussion. He never played hockey again.</p>
+    <p>What followed was a civil lawsuit that lasted ten years and five months. While that lawsuit moved through the Ontario Superior Court, Bertuzzi played in seven more NHL seasons, signed five more contracts, and earned approximately twenty-five million dollars in additional salary. The case was settled three weeks before trial. The settlement terms are private.</p>
+
+    <h2>You are Bertuzzi</h2>
+    <p>This game places you inside the man who threw the punch, from February 16, 2004 through August 19, 2014. You will make choices. The choices will sometimes feel like they have no good answer. That is the point.</p>
+
+    <div class="meters-explainer">
+      <div class="meter-row">
+        <div class="meter-name code">Code</div>
+        <div class="meter-desc">How your teammates, your coach, and the broader hockey culture see you. Too low and you lose ice time, then your team, then your career.</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-name mind">Mind</div>
+        <div class="meter-desc">Your inner state. Whatever it is that lets you sleep.</div>
+      </div>
+      <div class="meter-row">
+        <div class="meter-name money">Money</div>
+        <div class="meter-desc">Your remaining career earnings, in millions. The clock that runs the longest.</div>
+      </div>
+    </div>
+
+    <p style="color: var(--ink-dim); font-style: italic; margin-top: 2rem;">When you are ready.</p>
+  `;
+  game.appendChild(p);
+
+  renderContinue('Begin Scene 1', () => {
+    hud.classList.remove('hidden');
+    updateMeters();
+    setTimelineCurrent('s1');
+    scene1_denver();
+  });
+}
+
+// ================================================================
+// SCENE 1 — DENVER
+// ================================================================
+function scene1_denver() {
+  clearGame();
+  setDate('FEB 16, 2004');
+  state.scene = 1;
+  setTimelineCurrent('s1');
+
+  renderSceneHeader('Scene 1', 'Feb 16, 2004', 'Pepsi Center, Denver');
+  renderProse([
+    `The Avalanche lead 1–0 in the second period. You are Todd Bertuzzi, twenty-nine years old, and you are on the bench. Your shift ended ninety seconds ago. Your captain, Markus Naslund, is on the ice. He is the best friend you have on this team.`,
+    `You watch him chase a loose puck into the Avalanche zone. A Colorado rookie named Steve Moore comes across the slot. Moore has his head up. Naslund has his head down.`,
+    `The hit is shoulder to head. It is not a penalty. It is, by the written rulebook, a clean hockey play. Naslund does not get up.`
+  ]);
+
+  setTimeout(() => {
+    renderVideo('hqE637DFEvE', 'The Naslund hit · Feb 16, 2004', 'CBC broadcast footage. The hit Moore would, three weeks later, refuse to fight for.');
+    setTimeout(() => {
+      renderProse([`Matt Cooke is next to you on the bench.`]);
+      setTimeout(() => {
+        renderDialogue('MATT COOKE', 'You see that shit?');
+        setTimeout(() => {
+          renderChoices([
+            { text: 'Yeah.',                         deltas: { code: 0, mind: 0 },               consequence: 'Cooke nods. He expected that answer.' },
+            { text: 'It was a clean hit.',           deltas: { code: -8, mind: +2 },             consequence: 'Cooke stares at you for a second. He turns back to the ice.', flag: 'soft_on_moore' },
+            { text: '(say nothing)',                 deltas: { code: -3, mind: 0 },              consequence: 'Cooke mutters something you do not hear.' }
+          ], (choice) => {
+            renderConsequence(choice.consequence);
+            setTimeout(() => {
+              renderProse([
+                `Naslund is helped off the ice twelve minutes later. He does not return to the game. In the locker room after the final buzzer, the team doctor uses the word <em>concussion</em>. Brad May is still in his jersey, talking to a pool of reporters outside the dressing room. You can hear him from inside.`
+              ]);
+              setTimeout(() => {
+                renderDialogue('BRAD MAY', "There's definitely a bounty on his head. Clean hit or not. That's hockey.");
+                setTimeout(() => {
+                  renderContinue('End of Scene 1', () => renderTransition('Feb 17 — Mar 3, 2004', 'Fifteen days pass.', 'Four games. Eleven media availabilities. One question.', scene2_buildup));
+                }, 1200);
+              }, 2000);
+            }, 1600);
+          });
+        }, 1000);
+      }, 1500);
+    }, 2500);
+  }, 3000);
+}
+
+// ================================================================
+// SCENE 2 — THE BUILDUP
+// ================================================================
+function scene2_buildup() {
+  clearGame();
+  setDate('FEB 28, 2004');
+  state.scene = 2;
+  setTimelineCurrent('s2');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 2', 'Feb 17 – Mar 3, 2004', 'Vancouver');
+  renderProse([
+    `The Canucks have played four games since Denver. You have played in all of them. The team has spoken about Moore in every locker room meeting you have attended. Reporters have asked about Moore at every availability you have attended. Your mother called last Tuesday and asked if it was true.`,
+    `Tonight is a team dinner at a steakhouse on Hornby Street. Brendan Morrison is across from you. The others are down the table. Morrison is your roommate on the road. He is the person on this team who knows your kids' names.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('BRENDAN MORRISON', "It's gonna have to be one of us, Todd. Everyone knows who.");
+    setTimeout(() => {
+      renderChoices([
+        { text: "I know.",                             deltas: { code: +5, mind: -3 },       consequence: 'He nods. He does not say anything else for the rest of the dinner.' },
+        { text: "Markus wouldn't want that.",          deltas: { code: -10, mind: +5 },      consequence: 'Morrison looks at you for a long moment. "You should tell him that," he says. He knows you will not.' },
+        { text: "Why does it have to be me?",          deltas: { code: -5, mind: 0 },        consequence: 'He does not answer that. He thinks he has already answered it.' }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => scene2_media(), 2000);
+      });
+    }, 1400);
+  }, 3000);
+}
+
+function scene2_media() {
+  renderProse([
+    `Two days later. Media availability after morning skate. Eight reporters. One of them asks the question you have been asked eleven times in ten days.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('REPORTER', "Todd, Brad May said there's a bounty on Moore's head. Colorado comes to town in three days. Do you expect Moore to answer for the Naslund hit?");
+    setTimeout(() => {
+      renderChoices([
+        { text: "He'll have to answer the bell.",              deltas: { code: +10, mind: -5 }, consequence: 'Several reporters write the quote down. It is the lead of four articles by morning.', ledger: { key: 'media_quote', value: "He'll have to answer the bell." } },
+        { text: "That's not how we operate.",                  deltas: { code: -12, mind: +3 }, consequence: 'The reporter writes something down. It is not your quote.', ledger: { key: 'media_quote', value: "That's not how we operate." }, flag: 'public_soft' },
+        { text: "I'm just focused on the next game.",          deltas: { code: -3, mind: 0 },   consequence: 'They have heard this answer before. One of them sighs audibly.', ledger: { key: 'media_quote', value: "I'm just focused on the next game." } }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => scene2_march3(), 2000);
+      });
+    }, 1400);
+  }, 2500);
+}
+
+function scene2_march3() {
+  setDate('MAR 3, 2004');
+  renderProse([
+    `March 3. Canucks host Colorado. Gary Bettman is in the arena. You have been on the ice for the same shift as Steve Moore three times. He has refused to engage each time. Late second period, you are on the ice together again. The puck is loose along the boards.`
+  ]);
+
+  setTimeout(() => {
+    renderChoices([
+      { text: "Drop the gloves. Challenge him.",            deltas: { code: +8, mind: 0 },   consequence: 'Moore skates away. The linesmen separate you before it starts. The crowd boos. Your teammates tap your shin pads on the bench.' },
+      { text: "Hit him along the boards. Hard.",            deltas: { code: +3, mind: 0 },   consequence: 'You get him cleanly. He goes down but gets up. Two minutes for charging. Nothing happens.' },
+      { text: "Play the puck. Let it go.",                  deltas: { code: -15, mind: +2 }, consequence: 'You hear a teammate on the bench say your name as you come off the ice. You do not look up.' }
+    ], (choice) => {
+      renderConsequence(choice.consequence);
+      setTimeout(() => {
+        renderProse([
+          `The game ends 5–5. No one fought Moore. Bettman flies home to New York.`,
+          `That night at the hotel, your phone rings. It is your agent.`
+        ]);
+        setTimeout(() => {
+          renderDialogue('YOUR AGENT', "They're putting you on the ice more, Todd. People are expecting something. You know that, right?");
+          setTimeout(() => {
+            renderContinue('End of Scene 2', () => renderTransition('Mar 8, 2004', 'Five days later. Vancouver hosts Colorado.', 'You are on the ice in the third period.', scene3_punch));
+          }, 1500);
+        }, 2500);
+      }, 2000);
+    });
+  }, 2800);
+}
+
+// ================================================================
+// SCENE 3 — MARCH 8
+// ================================================================
+function scene3_punch() {
+  clearGame();
+  setDate('MAR 8, 2004');
+  state.scene = 3;
+  setTimelineCurrent('s3');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 3', 'March 8, 2004', 'GM Place, Vancouver');
+  renderProse([
+    `Second intermission. The Canucks are losing 5–2. You are in the locker room. Coach Marc Crawford is standing at the whiteboard.`,
+    `He has written a number on the board in red marker. <strong>#14</strong>. He draws a circle around it.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('COACH CRAWFORD', 'He needs to pay the price.');
+    setTimeout(() => {
+      renderProse([
+        `No one in the room says anything. Morrison is tying his skate. Cooke is looking at you. You are looking at the whiteboard.`
+      ]);
+      setTimeout(() => {
+        renderContinue('Return to the ice', () => scene3_ice());
+      }, 1800);
+    }, 1200);
+  }, 3000);
+}
+
+function scene3_ice() {
+  renderProse([
+    `Third period. The score is 8–2 Colorado. The crowd has gone quiet. Everyone in the arena knows what the period is for. You are on the ice. Moore is on the ice. You skate up behind him. He senses you but does not turn. You have time to decide.`
+  ]);
+
+  setTimeout(() => {
+    renderChoices([
+      { text: "Forecheck. Play the shift.",                     deltas: { code: -5, mind: 0 },     consequence: 'You do not hit him. The shift ends. You come back to the bench. Crawford does not look at you.' },
+      { text: "Challenge him. Drop the gloves.",                deltas: { code: +5, mind: 0 },     consequence: 'Moore refuses. He skates away. You grab his jersey. He shrugs you off.' },
+      { text: "Skate to the bench. You are done.",              deltas: { code: -30, mind: +5 },   consequence: 'You pull the door open. The bench is silent. Crawford scratches you for the next two games.', flag: 'tried_to_escape' },
+      { text: "Go after him.",                                  deltas: { code: +15, mind: -15 }, consequence: 'Time slows.', flag: 'committed' }
+    ], (choice) => {
+      renderConsequence(choice.consequence);
+
+      if (choice.flag === 'committed') {
+        setTimeout(() => scene3_commit_1(), 2500);
+      } else if (choice.flag === 'tried_to_escape') {
+        setTimeout(() => scene3_escape_warning(), 3000);
+      } else {
+        setTimeout(() => scene3_repeat_pressure(), 3000);
+      }
+    });
+  }, 2500);
+}
+
+function scene3_escape_warning() {
+  renderProse([
+    `The next morning, the team is on a flight to Calgary. You are not on the flight. Crawford has scratched you. Your phone buzzes with calls from your agent. A reporter leaves a voicemail asking if you refused to fight.`,
+    `The game will not let you keep doing this. Moore will be on the ice in three nights. And three nights after that. And three nights after that.`
+  ]);
+  setTimeout(() => {
+    renderContinue('Try again', () => scene3_ice());
+  }, 3500);
+}
+
+function scene3_repeat_pressure() {
+  renderProse([
+    `Two shifts later you are on the ice again. Moore is on the ice again. The score is 8–2. The crowd is waiting for something. Coach Crawford is watching from the bench.`
+  ]);
+  setTimeout(() => {
+    renderChoices([
+      { text: "Forecheck. Finish the game clean.",     deltas: { code: -10, mind: 0 }, consequence: 'The shift ends. Your linemates do not speak to you on the bench.' },
+      { text: "Go after him.",                         deltas: { code: +15, mind: -15 }, consequence: 'Time slows.', flag: 'committed' }
+    ], (choice) => {
+      renderConsequence(choice.consequence);
+      if (choice.flag === 'committed') {
+        setTimeout(() => scene3_commit_1(), 2500);
+      } else {
+        setTimeout(() => scene3_final_pressure(), 3000);
+      }
+    });
+  }, 2500);
+}
+
+function scene3_final_pressure() {
+  renderProse([
+    `Shift after shift. The period runs down. Every time you are on the ice, Moore is on the ice. The crowd is waiting. Your teammates are waiting. The coach is waiting. The only person in the arena who is not waiting for you to do something is Steve Moore, because he is trying very hard to pretend he cannot feel you behind him.`,
+    `There are four minutes left in the game. The puck is loose in the neutral zone. Moore reaches for it. You are behind him.`
+  ]);
+  setTimeout(() => {
+    renderChoices([
+      { text: "Go after him.", deltas: { code: +15, mind: -15 }, consequence: 'Time slows.', flag: 'committed' }
+    ], (choice) => {
+      renderConsequence(choice.consequence);
+      setTimeout(() => scene3_commit_1(), 2500);
+    });
+  }, 3000);
+}
+
+function scene3_commit_1() {
+  clearGame();
+  hideTimeline();
+  hud.classList.add('hidden');
+  const frame = el('div', 'punch-frame');
+  frame.innerHTML = `
+    <div class="punch-prompt">Press to continue</div>
+    <div class="punch-action">You skate up behind him.</div>
+    <button class="punch-button" id="pb1">Skate</button>
+  `;
+  game.appendChild(frame);
+  document.getElementById('pb1').onclick = () => scene3_commit_2();
+  scrollToBottom();
+}
+
+function scene3_commit_2() {
+  clearGame();
+  const frame = el('div', 'punch-frame');
+  frame.innerHTML = `
+    <div class="punch-prompt">Press to continue</div>
+    <div class="punch-action">You grab his jersey with your left hand.</div>
+    <button class="punch-button" id="pb2">Grab</button>
+  `;
+  game.appendChild(frame);
+  document.getElementById('pb2').onclick = () => scene3_commit_3();
+  scrollToBottom();
+}
+
+function scene3_commit_3() {
+  clearGame();
+  const frame = el('div', 'punch-frame');
+  frame.innerHTML = `
+    <div class="punch-prompt">Press to continue</div>
+    <div class="punch-action">You throw the punch.</div>
+    <button class="punch-button" id="pb3">Throw</button>
+  `;
+  game.appendChild(frame);
+  document.getElementById('pb3').onclick = () => scene3_freeze();
+  scrollToBottom();
+}
+
+function scene3_freeze() {
+  clearGame();
+  const freeze = el('div', 'punch-freeze');
+  freeze.innerHTML = `<div class="punch-freeze-text">—</div>`;
+  game.appendChild(freeze);
+
+  setTimeout(() => {
+    freeze.innerHTML = `
+      <div class="punch-freeze-text">
+        He does not get up.<br>
+        Three other players are on top of you.<br>
+        Someone is screaming.
+      </div>
+    `;
+  }, 3000);
+
+  setTimeout(() => {
+    freeze.innerHTML = `
+      <div class="punch-freeze-text">
+        Three fractured vertebrae.<br>
+        A concussion.<br>
+        Facial lacerations.<br>
+        Steve Moore is twenty-five years old.
+      </div>
+    `;
+  }, 7500);
+
+  setTimeout(() => {
+    renderContinue('See what you did', () => scene3_video());
+  }, 13000);
+
+  scrollToBottom();
+}
+
+function scene3_video() {
+  clearGame();
+  showTimeline();
+  hud.classList.remove('hidden');
+
+  renderProse([
+    `This is what you did. This is the actual broadcast. The footage will be played at the league disciplinary hearing. It will be played at the criminal proceedings in Vancouver. It will be played, eventually, in depositions across Toronto.`
+  ]);
+
+  renderVideo('RH_ypS31TTc', 'The Bertuzzi assault · Mar 8, 2004', 'CBC broadcast footage. The act you just performed.');
+
+  setTimeout(() => {
+    renderContinue('End of Scene 3', () => renderTransition('Mar 9, 2004', 'The next morning.', 'Your phone has rung forty-seven times.', scene4_aftermath));
+  }, 2000);
+}
+
+// ================================================================
+// SCENE 4 — AFTERMATH
+// ================================================================
+function scene4_aftermath() {
+  clearGame();
+  setDate('MAR 11, 2004');
+  state.scene = 4;
+  setTimelineCurrent('s4');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 4', 'Aftermath', 'Vancouver');
+  renderProse([
+    `Your phone has rung forty-seven times since six a.m. You are on your couch in your living room in Vancouver. Your wife Julie has taken the children to her sister's house because there are reporters parked across the street. The television is on. You are on the television. You cannot turn it off because the remote is on the coffee table and you do not want to reach for it.`,
+    `The phone rings again. It is Gary Bettman's office.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('GARY BETTMAN', 'Todd. You are suspended for the remainder of the regular season and the playoffs. Five hundred thousand dollars in forfeit salary. Your reinstatement will be reviewed.');
+
+    // money hit
+    setTimeout(() => {
+      applyDeltas({ money: -0.5 });
+      const fb = el('div', 'meter-feedback');
+      fb.innerHTML = formatDeltas({ money: -0.5 });
+      game.appendChild(fb);
+
+      setTimeout(() => {
+        renderProse([
+          `You say the word <em>yes</em> three times on the phone call and you do not remember what the questions were. When it ends, you sit on the couch for two hours. The television is still on. You are not on it anymore.`,
+          `Eventually, the phone rings again.`
+        ]);
+
+        setTimeout(() => {
+          renderDialogue('MARKUS NASLUND', "I didn't want this, Todd.");
+          setTimeout(() => {
+            renderChoices([
+              { text: "I know.",                   deltas: { mind: +2 },           consequence: 'There is a long pause. He says he has to go.' },
+              { text: "I did it for you.",         deltas: { mind: -10 },          consequence: 'There is a longer pause. He says, quietly, "No you didn\'t." The line goes dead.', flag: 'naslund_broken' },
+              { text: "(silence)",                 deltas: { mind: -5 },           consequence: 'Neither of you says anything. He hangs up first.' }
+            ], (choice) => {
+              renderConsequence(choice.consequence);
+              setTimeout(() => scene4_julie(), 2800);
+            });
+          }, 1500);
+        }, 3000);
+      }, 1500);
+    }, 1500);
+  }, 2500);
+}
+
+function scene4_julie() {
+  renderProse([
+    `Julie comes home after dark. The children are asleep in the back of the car. She carries them up one at a time and puts them in their beds. You stand in the hallway and watch. When she comes out of the second bedroom she looks at you and does not speak.`
+  ]);
+  setTimeout(() => {
+    renderDialogue('JULIE', "Are you okay?");
+    setTimeout(() => {
+      renderChoices([
+        { text: "No.",                           deltas: { mind: +5 },           consequence: 'She puts her hand on your face. Neither of you says anything else.' },
+        { text: "I will be.",                    deltas: { mind: -3 },           consequence: 'She nods slowly. She does not believe you. Neither do you.' },
+        { text: "I don\'t know what to say.",     deltas: { mind: +3 },           consequence: 'She says, "That\'s okay." You both stand in the hallway for a while.' }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => scene4_plea(), 3000);
+      });
+    }, 1400);
+  }, 2500);
+}
+
+function scene4_plea() {
+  setDate('DEC 22, 2004');
+  renderProse([
+    `Nine months later. British Columbia Provincial Court. You are sitting at a defense table in a dark blue suit. Your lawyer is beside you. The prosecutor has just read the statement of facts. You have pleaded guilty to assault causing bodily harm.`,
+    `The judge is speaking.`
+  ]);
+  setTimeout(() => {
+    renderDialogue('THE JUDGE', "Mr. Bertuzzi. I am prepared to accept the joint submission. Conditional discharge. Eighty hours of community service. One year of probation. You will not play in any hockey game in which Mr. Steve Moore is also a participant. Upon successful completion, no conviction will be registered against you.");
+    setTimeout(() => {
+      renderProse([
+        `You walk out of the courthouse. Your lawyer has arranged a side exit so you do not have to see the cameras. In the car on the way home, your wife takes your hand. You do not cry until after the children are asleep.`
+      ]);
+      setTimeout(() => {
+        renderContinue('End of Scene 4', () => renderTransition('Sep 16, 2004 — Jul 22, 2005', 'The league locks itself out for an entire season.', 'You and everyone else are on the same enforced timeout.', scene5_lockout));
+      }, 2000);
+    }, 2500);
+  }, 2500);
+}
+
+// ================================================================
+// SCENE 5 — LOCKOUT
+// ================================================================
+function scene5_lockout() {
+  clearGame();
+  setDate('APR 2005');
+  state.scene = 5;
+  setTimelineCurrent('s5');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 5', 'The Lockout Year', 'A restaurant, Vancouver');
+  renderProse([
+    `The NHL has been shut down for eight months. There will be no season. Your suspension, which was set to run through an unplayed year, is a technicality. You have been completing your community service. You have been training alone at a rink downtown that rents ice by the hour.`,
+    `A former teammate, in town for the week, invites you to dinner. You have known him since juniors. He is one of the few people from the league who still calls.`,
+    `Near the end of the meal, he sets down his fork.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('FORMER TEAMMATE', "I have to ask you. And I will only ask you this once. Would you do it again?");
+    setTimeout(() => {
+      renderChoices([
+        { text: "Yeah.",                               deltas: { mind: -5 },    consequence: 'He nods. He does not ask anything else. He picks up his fork.', ledger: { key: 'would_do_again', value: 'Yes.' } },
+        { text: "No.",                                 deltas: { mind: +3 },    consequence: 'He looks at you for a long time. "Okay," he says, finally. He changes the subject.', ledger: { key: 'would_do_again', value: 'No.' } },
+        { text: "I don\'t know.",                      deltas: { mind: 0 },     consequence: 'He says that is the only honest answer he has heard from anyone about this.', ledger: { key: 'would_do_again', value: "I don't know." } },
+        { text: "(say nothing)",                       deltas: { mind: -2 },    consequence: 'He waits. You wait. The waiter comes by. He changes the subject.', ledger: { key: 'would_do_again', value: '[declined to answer]' } }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => {
+          renderProse([
+            `You drive home alone. The lockout ends in July. Vancouver lets your rights lapse. Florida makes an offer.`
+          ]);
+          setTimeout(() => {
+            renderContinue('End of Scene 5', () => renderTransition('Jul 2005 — Sep 2010', 'Five years pass.', 'Five contracts. Five cities. The case never closes.', carousel));
+          }, 2000);
+        }, 3000);
+      });
+    }, 1500);
+  }, 3500);
+}
+
+// ================================================================
+// CAROUSEL — CONTRACT MONTAGE (NEW)
+// ================================================================
+function carousel() {
+  clearGame();
+  setDate('2005 — 2010');
+  setTimelineCurrent('carousel');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Interlude', 'The Carousel', '2005 — 2010');
+
+  renderProse([
+    `What follows is what the legal system calls <em>delay</em>. From the perspective of Steve Moore, who cannot work, it is five years he does not get back. From the perspective of you, who can, it is five contracts.`
+  ]);
+
+  const c = el('div', 'carousel');
+  game.appendChild(c);
+
+  const events = [
+    { year: 'Aug 2005', label: 'Florida Panthers · 1 yr', money: '+$5.2M', delta: 5.2, type: 'contract' },
+    { year: 'Feb 2006', label: 'Moore files in Colorado district court', type: 'legal' },
+    { year: 'Jul 2006', label: 'Detroit Red Wings · 2 yr', money: '+$8.0M', delta: 8.0, type: 'contract' },
+    { year: 'Feb 2006', label: 'Moore re-files in Ontario after Colorado dismisses', type: 'legal' },
+    { year: 'Oct 2007', label: 'Discovery begins in Toronto. You will be deposed', type: 'legal' },
+    { year: 'Jul 2007', label: 'Anaheim Ducks · 2 yr', money: '+$8.0M', delta: 8.0, type: 'contract' },
+    { year: 'Mar 2008', label: 'Moore amends the suit. Crawford added as defendant', type: 'legal' },
+    { year: 'Jul 2008', label: 'Calgary Flames · 1 yr', money: '+$1.95M', delta: 1.95, type: 'contract' },
+    { year: 'Aug 2009', label: 'Detroit Red Wings · 1 yr', money: '+$1.5M', delta: 1.5, type: 'contract' },
+    { year: 'Sep 2010', label: 'Moore still cannot work. Symptoms persist', type: 'legal' }
+  ];
+
+  events.forEach((event, i) => {
+    const row = el('div', 'carousel-row');
+    row.style.animationDelay = (i * 0.35) + 's';
+    row.innerHTML = `
+      <div class="carousel-year">${event.year}</div>
+      <div class="carousel-event ${event.type === 'legal' ? 'legal' : ''}">${event.label}</div>
+      <div class="carousel-money">${event.money || ''}</div>
+    `;
+    c.appendChild(row);
+
+    if (event.type === 'contract') {
+      setTimeout(() => applyDeltas({ money: event.delta }), (i * 350) + 200);
+    }
+  });
+
+  setTimeout(() => {
+    renderProse([
+      `By the end of 2010, you have earned roughly twenty-four million dollars in salary since the punch. Steve Moore has earned nothing.`
+    ]);
+    setTimeout(() => {
+      renderContinue('Continue to deposition', () => renderTransition('Oct 2007', 'Toronto. The deposition you have known was coming for three years.', null, scene6_deposition));
+    }, 2000);
+  }, events.length * 350 + 1500);
+}
+
+// ================================================================
+// SCENE 6 — DEPOSITION
+// ================================================================
+function scene6_deposition() {
+  clearGame();
+  setDate('OCT 2007');
+  state.scene = 6;
+  setTimelineCurrent('s6');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 6', 'Examination for Discovery', 'Toronto');
+  renderProse([
+    `A conference room at the offices of Danson Recht LLP in downtown Toronto. You have been here for three hours and fourteen minutes. Tim Danson is across the table. He is Steve Moore's lawyer. He has been asking you questions since nine fifteen in the morning.`,
+    `Your own lawyer is next to you. A stenographer is typing. A video camera in the corner is recording. This testimony is part of the civil case. Everything you say will become part of the public court record.`,
+    `Danson turns a page in his notebook.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('TIM DANSON', "Mr. Bertuzzi. I want to take you back to the second intermission of the March 8th, 2004 game. In your own words. What did Mr. Crawford say in that locker room?");
+    setTimeout(() => {
+      renderChoices([
+        { text: 'He said Moore needed to pay the price.',            deltas: { code: -5, mind: 0 },  consequence: 'Danson writes something down. Your own lawyer does not object. The stenographer types.', ledger: { key: 'deposition_crawford', value: 'Crawford told us Moore had to pay the price.' } },
+        { text: "I don't specifically recall the exact words.",      deltas: { mind: -5 },  consequence: 'Danson looks at you. "I find that surprising, Mr. Bertuzzi," he says.', ledger: { key: 'deposition_crawford', value: 'I do not specifically recall.' } },
+        { text: 'He told us to calm down and play hockey.',          deltas: { code: +3, mind: -8 }, consequence: 'Your lawyer does not object. Danson underlines something in his notes.', ledger: { key: 'deposition_crawford', value: 'Crawford told us to calm down.' }, flag: 'lied_about_crawford' }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => scene6_ledger(), 2800);
+      });
+    }, 2000);
+  }, 3500);
+}
+
+function scene6_ledger() {
+  renderProse([
+    `Danson turns a page. He looks at his notes for a long time before speaking.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('TIM DANSON', "Mr. Bertuzzi. I want to read you something. This is from an interview your former teammate gave to a journalist in 2005, after the lockout, describing a conversation the two of you had at dinner. He quotes you directly. And I would like you to tell me whether the quote is accurate.");
+
+    setTimeout(() => {
+      const ledger = el('div', 'ledger-callback');
+      const quote = state.ledger.would_do_again || '[no answer on record]';
+      ledger.innerHTML = `
+        <div class="ledger-label">Read into the record</div>
+        <div class="ledger-quote">"I asked him if he would do it again. He said: <strong>${quote}</strong>"</div>
+      `;
+      game.appendChild(ledger);
+      scrollToBottom();
+
+      setTimeout(() => {
+        renderDialogue('TIM DANSON', 'Did you say that, Mr. Bertuzzi?');
+        setTimeout(() => {
+          renderChoices([
+            { text: 'Yes. I said that.',                          deltas: { mind: -5 }, consequence: 'Danson writes it down. He does not ask a follow-up.' },
+            { text: "I don't remember saying that.",              deltas: { mind: -8 }, consequence: 'Danson looks at you. He does not speak for a long time. Then he turns another page.' },
+            { text: 'The context was different than he suggests.', deltas: { mind: -3 }, consequence: 'Your lawyer, finally, objects. The question moves on. Nothing is resolved.' }
+          ], (choice) => {
+            renderConsequence(choice.consequence);
+            setTimeout(() => {
+              renderProse([
+                `The deposition goes another four hours. When it is finally over, you walk out onto University Avenue. It is raining. You do not put your coat on. You walk three blocks before you realize you are walking in the wrong direction.`
+              ]);
+              setTimeout(() => {
+                renderContinue('End of Scene 6', () => renderTransition('Dec 17, 2007', 'Two months later. The Ontario Superior Court rules on what becomes public.', null, irac_2007));
+              }, 2000);
+            }, 2800);
+          });
+        }, 2500);
+      }, 2500);
+    }, 2500);
+  }, 2500);
+}
+
+// ================================================================
+// IRAC 1 — 2007 CanLII 57934
+// ================================================================
+function irac_2007() {
+  clearGame();
+  setDate('DEC 17, 2007');
+  setTimelineCurrent('irac1');
+  hud.classList.remove('hidden');
+
+  const p = el('div', 'irac-page');
+  p.innerHTML = `
+    <div class="marker">Reported decision · Briefing</div>
+    <h1>Moore v. Bertuzzi</h1>
+    <div class="citation">2007 CanLII 57934 (ON SC) · Ontario Superior Court of Justice</div>
+
+    <h2>Issue</h2>
+    <ol>
+      <li>Whether the Rules of Civil Procedure prohibit a party from filing complete discovery transcripts with the court</li>
+      <li>Whether public access to the filed transcripts poses a serious risk to Bertuzzi's right to a fair trial sufficient to justify a publication ban or sealing order</li>
+      <li>Whether the deemed undertaking rule prevents transcripts from becoming part of the public record once filed</li>
+    </ol>
+
+    <h2>Rule</h2>
+    <ul>
+      <li>Open court principle (s. 2(b) of the Canadian Charter of Rights and Freedoms; ss. 135 and 137 of the Courts of Justice Act)</li>
+      <li>Dagenais/Mentuck test (a publication ban is justified only where necessary to prevent a serious risk to the proper administration of justice and where the salutary effects outweigh the deleterious effects on freedom of expression and the open court principle)</li>
+      <li>Rules of Civil Procedure, rules 30.1.01, 34.18, 37.10 (filing of transcripts; deemed undertaking)</li>
+    </ul>
+
+    <h2>Analysis</h2>
+    <p>In 2007, Moore's counsel sought to file complete examination-for-discovery transcripts of Bertuzzi and Canucks GM Dave Nonis as part of the civil action's procedural record. The transcripts contained Bertuzzi's sworn testimony that Coach Marc Crawford, during the second intermission of the March 8, 2004 game, had pointed to Moore's name on the locker-room whiteboard and said Moore had to "pay the price." Bertuzzi moved to prevent the filing, arguing that public release would jeopardize his right to a fair trial before a future jury and that the deemed undertaking rule shielded the testimony. The court rejected both arguments. The Rules of Civil Procedure do not prohibit filing complete transcripts. Applying the Dagenais/Mentuck test, the court found Bertuzzi had not established a real and substantial risk to a fair trial, only a speculative one, which is insufficient to override the constitutional presumption of open courts under s. 2(b) of the Charter. The deemed undertaking rule, which protects discovery materials from collateral use, does not survive the moment those materials are filed in court for use in the proceeding itself. The motion was dismissed. Once filed, the transcripts became part of the public court record. Within days, TSN, CBC, and other outlets reported on the contents, and the "pay the price" testimony entered public discourse for the first time.</p>
+
+    <h2>Conclusion</h2>
+    <ol>
+      <li>No, the Rules of Civil Procedure do not prohibit filing complete discovery transcripts</li>
+      <li>No, the risk to a fair trial was speculative and insufficient under Dagenais/Mentuck to justify restricting public access</li>
+      <li>No, the deemed undertaking rule does not prevent filed transcripts from becoming public</li>
+    </ol>
+  `;
+  game.appendChild(p);
+
+  setTimeout(() => {
+    renderContinue('Continue', () => renderTransition('Sep 2011', 'Four more years pass. Your lawyer calls.', 'He has worked something out with Crawford and Orca Bay.', mary_carter));
+  }, 800);
+}
+
+// ================================================================
+// MARY CARTER — NEW SCENE
+// ================================================================
+function mary_carter() {
+  clearGame();
+  setDate('SEP 2011');
+  setTimelineCurrent('mc');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 7', 'The Agreement', "Your lawyer's office, Toronto");
+
+  renderProse([
+    `Seven and a half years since March 8, 2004. The case has not gone to trial. Steve Moore has not received a dollar. Tim Danson has filed motion after motion. You have given depositions. Crawford has given depositions. Crawford has spent four years arguing, in court filings and in sworn testimony, that you disobeyed direct orders. You have spent four years arguing that he told you to do it. The third-party claim you filed against him in 2008 is still active.`,
+    `Your lawyer asks you to come to Toronto. He has good news.`
+  ]);
+
+  setTimeout(() => {
+    renderDialogue('YOUR LAWYER', "We have an agreement with Crawford and Orca Bay. They are dropping their cross-claims against you. You are dropping your third-party claim against Crawford. We are going to apportion liability among the three of us, privately, and present a unified defense to Moore at trial. Moore will not know we have done this. The judge will not know we have done this. Crawford and the Canucks will, in effect, become your allies for the remainder of the case.");
+
+    setTimeout(() => {
+      renderProse([
+        `You sit with this for a moment. You ask the question.`
+      ]);
+      setTimeout(() => {
+        renderChoices([
+          { text: "Is that legal?",                                  deltas: { mind: 0 },     consequence: '"It is what we are going to do," he says. "Sign here."' },
+          { text: "Crawford spent four years saying I lied. Now we\'re on the same side?", deltas: { mind: -5 },     consequence: '"That is the part you are paying me for," he says. "Sign here."' },
+          { text: "(Sign without asking)",                            deltas: { mind: -8 },    consequence: 'You sign. You do not ask anything.' }
+        ], (choice) => {
+          renderConsequence(choice.consequence);
+          setTimeout(() => mary_carter_2(), 3000);
+        });
+      }, 1800);
+    }, 2500);
+  }, 3000);
+}
+
+function mary_carter_2() {
+  renderProse([
+    `What you have signed is a partial settlement agreement. In Canadian civil procedure, it is called a Mary Carter agreement, after a line of American authority. It is not, on its face, illegal. It is enforceable between the parties who sign it. What it does is restructure the litigation: a case that had three defendants pointing at each other now has three defendants standing together against one plaintiff. The agreement is signed in private. It is not disclosed to Moore. It is not disclosed to the court.`,
+    `You go back to Detroit. You play out the season. You sign another contract.`,
+    `One year later, in September 2012, your lawyer calls again.`
+  ]);
+
+  setTimeout(() => {
+    setDate('SEP 2012');
+    renderDialogue('YOUR LAWYER', "Tim Danson has filed a motion. He noticed you dropped the third-party claim against Crawford last year. He went looking for the reason. He found the agreement. He is asking the court to compel disclosure.");
+
+    setTimeout(() => {
+      renderChoices([
+        { text: "Can he do that?",                            deltas: { mind: -3 },  consequence: '"He can ask. The judge will decide."' },
+        { text: "How bad is this?",                            deltas: { mind: -5 },  consequence: '"It depends on the judge."' }
+      ], (choice) => {
+        renderConsequence(choice.consequence);
+        setTimeout(() => {
+          renderProse([
+            `The judge is Master Ronald Dash of the Ontario Superior Court of Justice.`
+          ]);
+          setTimeout(() => {
+            renderContinue('Read the ruling', () => renderTransition('Jun 4, 2012', 'On appeal to Justice Perell.', null, irac_2012));
+          }, 2000);
+        }, 2500);
+      });
+    }, 2500);
+  }, 3500);
+}
+
+// ================================================================
+// IRAC 2 — 2012 ONSC 3248
+// ================================================================
+function irac_2012() {
+  clearGame();
+  setDate('JUN 4, 2012');
+  setTimelineCurrent('irac2');
+  hud.classList.remove('hidden');
+
+  const p = el('div', 'irac-page');
+  p.innerHTML = `
+    <div class="marker">Reported decision · Briefing</div>
+    <h1>Moore v. Bertuzzi</h1>
+    <div class="citation">2012 ONSC 3248 · Ontario Superior Court of Justice (Perell J.)</div>
+
+    <h2>Issue</h2>
+    <ol>
+      <li>Whether the settlement agreement between Bertuzzi, Crawford, and Orca Bay falls within an exception to settlement privilege requiring it be disclosed to Moore</li>
+      <li>Whether disclosure must be made immediately or can be deferred until trial</li>
+      <li>Whether the full financial terms must be disclosed, or only the structural fact that an agreement exists</li>
+    </ol>
+
+    <h2>Rule</h2>
+    <ul>
+      <li>Settlement privilege (class privilege protecting settlement communications, subject to exceptions)</li>
+      <li>Mary Carter agreement doctrine (partial settlement among defendants that restructures the adversarial alignment of the case)</li>
+      <li>Immediate disclosure rule from <em>Pettey v. Avis Car Inc.</em> (1993), affirmed by the Ontario Court of Appeal in <em>Laudon v. Roberts</em> (2009 ONCA 383) and <em>Aecon Buildings v. Brampton</em> (2010 ONCA 898)</li>
+      <li>Court's inherent jurisdiction to control its own process to maintain the integrity of the adversarial system</li>
+    </ul>
+
+    <h2>Analysis</h2>
+    <p>Moore filed suit in Ontario against Bertuzzi, Crawford, and Orca Bay for the on-ice attack of March 8, 2004. Bertuzzi initially brought a third-party claim against Crawford alleging Crawford had ordered the attack, and the defendants had pending cross-claims against each other. In 2011, Moore's lawyer Tim Danson noticed that Bertuzzi had dropped the third-party claim and the cross-claims had been dismissed. Investigation revealed that Bertuzzi, Crawford, and Orca Bay had secretly signed a partial settlement agreement apportioning liability among themselves, converting a three-sided fight into a unified defense against Moore. Master Dash ordered the agreement disclosed. Bertuzzi and Orca Bay appealed to Justice Perell, arguing settlement privilege absolutely protected the agreement, that disclosure should wait until trial, and that financial terms could remain confidential. Perell J. rejected all three arguments. Settlement privilege is a class privilege but not absolute, and agreements that alter the adversarial orientation of litigation fall within an established exception because the court cannot manage its own process without understanding the true alignment of the parties. Relying on <em>Aecon</em> and <em>Laudon</em>, he held disclosure must be immediate so Moore could prepare for a trial in which the real positions of the parties were not hidden. Withholding the financial terms would be more prejudicial than full disclosure, because Moore and any eventual jury could not assess the incentives driving each defendant's posture. The appeal was dismissed and full disclosure ordered.</p>
+
+    <h2>Conclusion</h2>
+    <ol>
+      <li>Yes, the agreement falls within an exception to settlement privilege and must be disclosed</li>
+      <li>Immediately, not at trial</li>
+      <li>Yes, the full financial terms must be disclosed, not only the structural fact of the agreement</li>
+    </ol>
+  `;
+  game.appendChild(p);
+
+  setTimeout(() => {
+    renderContinue('Continue', () => renderTransition('Aug 19, 2014', 'Two more years of motion practice.', 'The trial is set for September 8. Your lawyer asks you to come to Toronto one more time.', scene7_settlement));
+  }, 800);
+}
+
+// ================================================================
+// SCENE 7 (now Scene 8 narratively) — SETTLEMENT
+// ================================================================
+function scene7_settlement() {
+  clearGame();
+  setDate('AUG 19, 2014');
+  state.scene = 8;
+  setTimelineCurrent('s7');
+  hud.classList.remove('hidden');
+
+  renderSceneHeader('Scene 8', 'Settlement', "Your lawyer's office, Toronto");
+  renderProse([
+    `Your lawyer's office is on the thirty-ninth floor of a tower on King Street. The windows face north. It is raining today, so you cannot see very far.`,
+    `The trial was scheduled to begin in three weeks. Gary Bettman was on the witness list. Bill Daly was on the witness list. John McCaw was on the witness list. Marc Crawford was on the witness list. For the first time in ten and a half years, the entire architecture of the National Hockey League's response to what happened on March 8, 2004 was about to be examined in open court, in front of a jury, in public.`,
+    `On the desk in front of you is a settlement agreement.`,
+    `Your lawyer has already told you the number. The game has not. The number is redacted from your side of the conversation. What you know is that it is an amount of money that will allow Steve Moore and his family to stop being professionally poor. It is not an amount of money that will allow them to forget what happened.`,
+    `You pick up the pen.`
+  ]);
+
+  setTimeout(() => {
+    renderChoices([
+      { text: 'Sign.', deltas: {}, consequence: 'You sign.' }
+    ], (choice) => {
+      renderConsequence(choice.consequence);
+      setTimeout(() => {
+        renderDialogue('YOUR LAWYER', "It's over, Todd.");
+        setTimeout(() => {
+          renderContinue(' ', () => scene7_final_text());
+        }, 2500);
+      }, 2500);
+    });
+  }, 4000);
+}
+
+function scene7_final_text() {
+  clearGame();
+  hud.classList.add('hidden');
+  hideTimeline();
+  const final = el('div', 'final-text');
+  final.innerHTML = `
+    <p>Steve Moore never played hockey again<br>after March 8, 2004.</p>
+    <p>Todd Bertuzzi played his final NHL game<br>on April 12, 2014.</p>
+    <p>He retired quietly.</p>
+    <p>He has no criminal record.</p>
+  `;
+  game.appendChild(final);
+
+  setTimeout(() => {
+    const credits = el('div', 'final-text');
+    credits.style.paddingTop = '3rem';
+    credits.innerHTML = `<p style="animation-delay: 0s; color: var(--ink-faint);">— End —</p>`;
+    game.appendChild(credits);
+
+    setTimeout(() => {
+      renderContinue(' ', () => scene8_epilogue());
+    }, 2000);
+  }, 8000);
+}
+
+// ================================================================
+// SCENE 8 — MOORE EPILOGUE
+// ================================================================
+function scene8_epilogue() {
+  clearGame();
+  hud.classList.add('hidden');
+  showTimeline();
+  setTimelineCurrent('s8');
+
+  const ep = el('div', 'epilogue');
+  ep.innerHTML = `
+    <div class="epilogue-header">
+      Now playing<br>
+      <span class="name">MOORE, STEVE · #14</span>
+    </div>
+    <div class="epilogue-prose">
+      You are in a hospital bed in Vancouver General.<br><br>
+      It is six a.m. on March 9, 2004.<br><br>
+      You cannot move your head.<br>
+      Your neck is in a brace.<br>
+      The room is very quiet.
+    </div>
+    <div id="ep-action" class="epilogue-action">&nbsp;</div>
+    <div style="display: flex; flex-direction: column; gap: 0.75rem; width: 100%; max-width: 360px;">
+      <button class="choice" id="ep-move">Try to move</button>
+      <button class="choice" id="ep-look">Look at the ceiling</button>
+      <button class="choice" id="ep-sleep">Try to sleep</button>
+    </div>
+    <div style="margin-top: 4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--ink-faint); text-align: center; max-width: 400px; line-height: 2;">
+      The game does not end.<br>
+      Close the tab when you are ready.
+    </div>
+  `;
+  game.appendChild(ep);
+
+  const action = document.getElementById('ep-action');
+  document.getElementById('ep-move').onclick = () => { action.textContent = 'You cannot.'; };
+  document.getElementById('ep-look').onclick = () => { action.textContent = 'You do.'; };
+  document.getElementById('ep-sleep').onclick = () => { action.textContent = 'You try.'; };
+
+  scrollToBottom();
+}
+
+// ================================================================
+// START
+// ================================================================
+scene0_title();
+</script>
+</body>
+</html>
